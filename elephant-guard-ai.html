@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ElephantGuard AI — Glitch Hunters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0f0a;
+    --forest: #0d2818;
+    --canopy: #12391f;
+    --moss: #1e5c30;
+    --sage: #4a8c5c;
+    --mint: #7abf8a;
+    --glow: #a8e6b8;
+    --amber: #e8a23a;
+    --amber-dim: #b8741a;
+    --warm: #f5e6c8;
+    --ivory: #f0ede4;
+    --danger: #c0392b;
+    --clay: #8b4513;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--ivory);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ─── CUSTOM CURSOR ─── */
+  .cursor {
+    width: 10px; height: 10px;
+    background: var(--glow);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.15s ease, opacity 0.3s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(168,230,184,0.4);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transition: transform 0.35s ease;
+  }
+
+  /* ─── GRAIN OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.35;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; width: 100%;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 48px;
+    background: rgba(10,15,10,0.85);
+    backdrop-filter: blur(20px);
+    z-index: 100;
+    border-bottom: 1px solid rgba(74,140,92,0.15);
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--glow);
+    letter-spacing: 0.02em;
+  }
+  .nav-logo span { color: var(--amber); font-style: italic; }
+  .nav-links { display: flex; gap: 32px; align-items: center; }
+  .nav-links a {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: rgba(240,237,228,0.5);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--glow); }
+  .nav-cta {
+    background: transparent;
+    border: 1px solid var(--amber);
+    color: var(--amber) !important;
+    padding: 8px 20px;
+    border-radius: 2px;
+    transition: background 0.2s, color 0.2s !important;
+  }
+  .nav-cta:hover { background: var(--amber) !important; color: var(--ink) !important; }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    position: relative;
+    padding: 120px 48px 80px;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 60% 40%, rgba(30,92,48,0.25) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 50% at 20% 70%, rgba(13,40,24,0.8) 0%, transparent 60%),
+      linear-gradient(160deg, #040806 0%, #0a1a0e 40%, #0d2818 100%);
+  }
+
+  /* Animated rings */
+  .hero-rings {
+    position: absolute;
+    right: -10%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 700px; height: 700px;
+    pointer-events: none;
+  }
+  .ring {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(74,140,92,0.2);
+    animation: pulse-ring 4s ease-in-out infinite;
+  }
+  .ring:nth-child(2) { inset: 80px; border-color: rgba(122,191,138,0.15); animation-delay: 0.8s; }
+  .ring:nth-child(3) { inset: 160px; border-color: rgba(168,230,184,0.12); animation-delay: 1.6s; }
+  .ring:nth-child(4) { inset: 240px; border-color: rgba(232,162,58,0.1); animation-delay: 2.4s; }
+  .ring:nth-child(5) { inset: 320px; border-color: rgba(232,162,58,0.15); animation-delay: 3.2s; }
+
+  @keyframes pulse-ring {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+  }
+
+  /* Elephant silhouette SVG */
+  .hero-elephant {
+    position: absolute;
+    right: 4%;
+    bottom: 0;
+    width: 480px;
+    opacity: 0.07;
+    pointer-events: none;
+  }
+
+  .hero-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--mint);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+    position: relative; z-index: 2;
+    opacity: 0; animation: fade-up 0.8s 0.2s forwards;
+  }
+  .hero-tag::before {
+    content: '';
+    width: 40px; height: 1px;
+    background: var(--mint);
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 7vw, 7rem);
+    font-weight: 900;
+    line-height: 0.92;
+    position: relative; z-index: 2;
+    opacity: 0; animation: fade-up 0.8s 0.4s forwards;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--amber);
+    display: block;
+  }
+  .hero-title .outline-text {
+    -webkit-text-stroke: 1px rgba(168,230,184,0.4);
+    color: transparent;
+    display: block;
+  }
+
+  .hero-sub {
+    max-width: 480px;
+    margin-top: 28px;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: rgba(240,237,228,0.6);
+    position: relative; z-index: 2;
+    opacity: 0; animation: fade-up 0.8s 0.6s forwards;
+  }
+
+  .hero-stats {
+    display: flex; gap: 48px;
+    margin-top: 60px;
+    position: relative; z-index: 2;
+    opacity: 0; animation: fade-up 0.8s 0.8s forwards;
+  }
+  .stat-item {}
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--glow);
+    line-height: 1;
+  }
+  .stat-num.danger { color: var(--danger); }
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(240,237,228,0.4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .hero-actions {
+    display: flex; gap: 16px;
+    margin-top: 48px;
+    position: relative; z-index: 2;
+    opacity: 0; animation: fade-up 0.8s 1s forwards;
+  }
+  .btn-primary {
+    background: var(--glow);
+    color: var(--ink);
+    padding: 14px 32px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    border: none; cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  }
+  .btn-primary:hover { background: var(--mint); transform: translateY(-2px); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ivory);
+    padding: 14px 32px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    border: 1px solid rgba(240,237,228,0.2);
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .btn-secondary:hover { border-color: var(--glow); color: var(--glow); transform: translateY(-2px); }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── SECTION COMMON ─── */
+  section {
+    padding: 120px 48px;
+    position: relative;
+  }
+  .section-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--sage);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-tag::before {
+    content: '';
+    width: 24px; height: 1px;
+    background: var(--sage);
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .section-title em { font-style: italic; color: var(--amber); }
+  .section-sub {
+    color: rgba(240,237,228,0.5);
+    font-size: 1rem;
+    line-height: 1.7;
+    max-width: 560px;
+    margin-bottom: 64px;
+  }
+  .divider {
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(74,140,92,0.3), transparent);
+    margin: 0;
+  }
+
+  /* ─── ABOUT / PROBLEM ─── */
+  .about {
+    background: var(--forest);
+  }
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .about-text p {
+    color: rgba(240,237,228,0.65);
+    line-height: 1.8;
+    margin-bottom: 20px;
+    font-size: 0.97rem;
+  }
+  .about-text p strong { color: var(--glow); font-weight: 500; }
+  .conflict-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+  }
+  .cs-card {
+    background: rgba(10,15,10,0.6);
+    padding: 28px;
+    border: 1px solid rgba(74,140,92,0.15);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .cs-card:hover { border-color: rgba(168,230,184,0.3); }
+  .cs-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 3px; height: 0;
+    background: var(--amber);
+    transition: height 0.4s;
+  }
+  .cs-card:hover::before { height: 100%; }
+  .cs-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--danger);
+    line-height: 1;
+  }
+  .cs-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(240,237,228,0.4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+  .cs-src {
+    font-size: 0.72rem;
+    color: rgba(240,237,228,0.25);
+    margin-top: 8px;
+  }
+
+  /* ─── PIPELINE ─── */
+  .pipeline { background: var(--ink); }
+  .pipeline-steps {
+    display: flex;
+    gap: 0;
+    position: relative;
+    overflow-x: auto;
+    padding-bottom: 20px;
+  }
+  .pipeline-steps::before {
+    content: '';
+    position: absolute;
+    top: 40px;
+    left: 60px; right: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--moss), var(--amber), var(--moss));
+  }
+  .step {
+    flex: 1; min-width: 160px;
+    text-align: center;
+    padding: 0 16px;
+    position: relative;
+    transition: transform 0.3s;
+  }
+  .step:hover { transform: translateY(-8px); }
+  .step-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--sage);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+  .step-icon {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: var(--canopy);
+    border: 1px solid rgba(74,140,92,0.4);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 1.8rem;
+    position: relative; z-index: 1;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .step:hover .step-icon {
+    background: var(--moss);
+    border-color: var(--mint);
+    box-shadow: 0 0 30px rgba(122,191,138,0.3);
+  }
+  .step-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--ivory);
+    margin-bottom: 8px;
+  }
+  .step-desc {
+    font-size: 0.82rem;
+    color: rgba(240,237,228,0.45);
+    line-height: 1.6;
+  }
+  .step-tags {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+  .step-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--sage);
+    border: 1px solid rgba(74,140,92,0.3);
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+
+  /* ─── TECH STACK ─── */
+  .tech { background: var(--forest); }
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1px;
+    background: rgba(74,140,92,0.1);
+    border: 1px solid rgba(74,140,92,0.1);
+  }
+  .tech-card {
+    background: var(--forest);
+    padding: 24px;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .tech-card:hover { background: rgba(30,92,48,0.5); }
+  .tech-cat {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--amber);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .tech-name {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--glow);
+    margin-bottom: 6px;
+  }
+  .tech-desc {
+    font-size: 0.78rem;
+    color: rgba(240,237,228,0.45);
+    line-height: 1.5;
+  }
+  .tech-card::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--moss), transparent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .tech-card:hover::after { transform: scaleX(1); }
+
+  /* ─── YOLOv7 HIGHLIGHT ─── */
+  .yolo-section {
+    background: linear-gradient(135deg, #0a1a0e 0%, #12391f 50%, #0a1a0e 100%);
+    border-top: 1px solid rgba(74,140,92,0.2);
+    border-bottom: 1px solid rgba(74,140,92,0.2);
+  }
+  .yolo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .yolo-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(232,162,58,0.1);
+    border: 1px solid rgba(232,162,58,0.3);
+    padding: 8px 18px;
+    border-radius: 2px;
+    margin-bottom: 28px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--amber);
+    letter-spacing: 0.05em;
+  }
+  .yolo-features {
+    display: flex; flex-direction: column; gap: 16px;
+    margin-top: 32px;
+  }
+  .yolo-feat {
+    display: flex; gap: 16px; align-items: flex-start;
+    padding: 16px;
+    background: rgba(10,15,10,0.4);
+    border-left: 2px solid var(--moss);
+    transition: border-color 0.3s;
+  }
+  .yolo-feat:hover { border-color: var(--mint); }
+  .yolo-feat-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+  .yolo-feat-title { font-weight: 500; color: var(--glow); font-size: 0.9rem; margin-bottom: 4px; }
+  .yolo-feat-desc { font-size: 0.8rem; color: rgba(240,237,228,0.5); line-height: 1.5; }
+
+  .detection-visual {
+    position: relative;
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .dv-frame {
+    width: 280px; height: 280px;
+    border: 1px solid rgba(168,230,184,0.3);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .dv-frame::before, .dv-frame::after {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: var(--glow);
+    border-style: solid;
+  }
+  .dv-frame::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .dv-frame::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+  .dv-inner {
+    font-size: 6rem;
+    animation: detect-pulse 2s ease-in-out infinite;
+  }
+  .dv-label {
+    position: absolute;
+    bottom: -40px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--sage);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .dv-conf {
+    position: absolute;
+    top: -10px; right: -10px;
+    background: var(--danger);
+    color: white;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    animation: blink 1s ease-in-out infinite;
+  }
+  @keyframes detect-pulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0px rgba(168,230,184,0)); }
+    50% { transform: scale(1.05); filter: drop-shadow(0 0 20px rgba(168,230,184,0.6)); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .scan-line {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--glow), transparent);
+    animation: scan 2.5s linear infinite;
+    opacity: 0.6;
+  }
+  @keyframes scan {
+    from { transform: translateY(0); }
+    to { transform: translateY(280px); }
+  }
+
+  /* ─── IMPACT ─── */
+  .impact { background: var(--ink); }
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    background: rgba(74,140,92,0.08);
+  }
+  .impact-card {
+    background: var(--ink);
+    padding: 40px;
+    display: flex; gap: 24px;
+    transition: background 0.3s;
+    position: relative;
+  }
+  .impact-card:hover { background: rgba(13,40,24,0.8); }
+  .impact-icon-wrap {
+    width: 56px; height: 56px; flex-shrink: 0;
+    background: rgba(30,92,48,0.4);
+    border: 1px solid rgba(74,140,92,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    border-radius: 2px;
+  }
+  .impact-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--ivory);
+    margin-bottom: 10px;
+  }
+  .impact-desc {
+    font-size: 0.85rem;
+    color: rgba(240,237,228,0.5);
+    line-height: 1.6;
+  }
+
+  /* ─── CHALLENGES ─── */
+  .challenges {
+    background: var(--canopy);
+  }
+  .challenge-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+  .chal-card {
+    padding: 28px;
+    border: 1px solid rgba(192,57,43,0.2);
+    position: relative;
+    transition: border-color 0.3s;
+  }
+  .chal-card:hover { border-color: rgba(192,57,43,0.5); }
+  .chal-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(192,57,43,0.5);
+    margin-bottom: 16px;
+    letter-spacing: 0.1em;
+  }
+  .chal-icon { font-size: 1.8rem; margin-bottom: 12px; }
+  .chal-title { font-weight: 500; color: var(--ivory); margin-bottom: 8px; font-size: 0.95rem; }
+  .chal-desc { font-size: 0.8rem; color: rgba(240,237,228,0.45); line-height: 1.5; }
+
+  /* ─── GITHUB CTA ─── */
+  .github-cta {
+    background: var(--forest);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .github-cta::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 80% at 50% 50%, rgba(30,92,48,0.4) 0%, transparent 70%);
+  }
+  .cta-inner { position: relative; z-index: 1; }
+  .cta-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--sage);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .cta-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 20px;
+  }
+  .cta-title em { color: var(--amber); font-style: italic; }
+  .cta-sub {
+    color: rgba(240,237,228,0.5);
+    max-width: 400px;
+    margin: 0 auto 48px;
+    line-height: 1.7;
+    font-size: 0.97rem;
+  }
+  .github-btn {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: var(--glow);
+    color: var(--ink);
+    padding: 18px 40px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: background 0.2s, transform 0.2s;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  }
+  .github-btn:hover { background: var(--mint); transform: translateY(-3px); }
+  .github-btn svg { width: 20px; height: 20px; fill: var(--ink); }
+
+  .team-tag {
+    margin-top: 48px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    color: rgba(240,237,228,0.25);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .team-tag span { color: var(--amber); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--ink);
+    padding: 32px 48px;
+    border-top: 1px solid rgba(74,140,92,0.1);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  footer p {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(240,237,228,0.2);
+    letter-spacing: 0.05em;
+  }
+  footer p span { color: var(--sage); }
+
+  /* ─── SCROLL REVEAL ─── */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  
+    .nav-links { display: none; }
+    section { padding: 80px 24px; }
+    .hero { padding: 100px 24px 60px; }
+    .hero-rings { display: none; }
+    .about-grid, .yolo-grid { grid-template-columns: 1fr; gap: 40px; }
+    .challenge-row { grid-template-columns: 1fr 1fr; }
+    .impact-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 24px; flex-wrap: wrap; }
+    footer { flex-direction: column; gap: 8px; text-align: center; }
+  }
+
+  /* ─── HAMBURGER + MOBILE MENU ─── */
+  .hamburger {
+    display: none;
+    flex-direction: column; gap: 5px;
+    cursor: pointer; padding: 4px;
+    background: none; border: none; z-index: 200;
+  }
+  .hamburger span {
+    display: block; width: 24px; height: 2px;
+    background: var(--glow);
+    transition: transform 0.3s, opacity 0.3s;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .mobile-menu {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(10,15,10,0.97);
+    backdrop-filter: blur(20px);
+    z-index: 150;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 36px;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem; font-weight: 700;
+    color: var(--ivory); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .mobile-menu a:hover { color: var(--glow); }
+  .mobile-menu .mob-github {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem !important;
+    background: var(--glow) !important; color: var(--ink) !important;
+    padding: 12px 28px; border-radius: 2px;
+    font-weight: 700;
+  }
+
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    section { padding: 80px 24px; }
+    .hero { padding: 100px 24px 60px; }
+    .hero-rings { display: none; }
+    .about-grid, .yolo-grid { grid-template-columns: 1fr; gap: 40px; }
+    .challenge-row { grid-template-columns: 1fr 1fr; }
+    .impact-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 24px; flex-wrap: wrap; }
+    footer { flex-direction: column; gap: 8px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Elephant<span>Guard</span> AI</div>
+  <div class="nav-links">
+    <a href="#about">Problem</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#tech">Tech Stack</a>
+    <a href="#detection">YOLOv7</a>
+    <a href="#impact">Impact</a>
+    <a href="https://github.com/GlitchHunters1/elephant-guard-ai" target="_blank" class="nav-cta">GitHub ↗</a>
+  </div>
+
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#about" class="mob-link">Problem</a>
+  <a href="#pipeline" class="mob-link">Pipeline</a>
+  <a href="#tech" class="mob-link">Tech Stack</a>
+  <a href="#detection" class="mob-link">YOLOv7</a>
+  <a href="#impact" class="mob-link">Impact</a>
+  <a href="https://github.com/GlitchHunters1/elephant-guard-ai" target="_blank" class="mob-github mob-link">GitHub ↗</a>
+</div>
+
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-rings">
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+  </div>
+  <!-- Elephant SVG silhouette -->
+  <svg class="hero-elephant" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill="white" d="M320 220 C320 220 340 200 345 180 C350 160 340 140 330 130 C325 125 315 118 300 115 C290 112 280 115 270 120 C265 115 255 105 240 100 C220 93 195 95 175 105 C160 112 148 125 140 140 C125 138 108 140 95 150 C80 162 72 178 75 195 C77 205 84 212 92 218 L85 250 L105 250 L112 228 C120 232 130 235 140 237 L140 250 L160 250 L160 238 C175 240 195 241 215 240 L215 250 L235 250 L235 238 C250 236 265 232 278 226 L285 250 L305 250 L298 222 C308 221 315 220 320 220 Z M175 165 C178 160 185 157 192 159 C199 161 203 168 200 173 C197 178 190 180 183 178 C176 176 172 170 175 165 Z"/>
+    <path fill="white" d="M92 218 C85 215 78 210 72 202 C65 192 62 180 65 170 C60 175 57 183 58 192 C59 203 66 213 75 218 Z"/>
+    <path fill="white" d="M345 175 C348 170 350 163 349 156 C347 148 342 142 335 138 C338 145 340 153 340 162 C340 170 338 177 335 183 Z"/>
+  </svg>
+
+  <h1 class="hero-title">
+    <span class="outline-text">Real-Time</span>
+    <em>Elephant</em>
+    Guard System
+  </h1>
+  <p class="hero-sub">An AI + IoT powered detection network combining YOLOv7, thermal imaging, Doppler radar, and LoRa communication to prevent Human-Elephant Conflict before it happens.</p>
+
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-num danger">595</div>
+      <div class="stat-label">Human Lives Lost<br>in 11 Years</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num danger">303</div>
+      <div class="stat-label">Deaths in<br>Last 5 Years</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">66%</div>
+      <div class="stat-label">Elephant Mortality<br>Due to HEC</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" style="color:var(--amber)">45</div>
+      <div class="stat-label">Elephants Lost<br>in 3 Years</div>
+    </div>
+  </div>
+
+  <div class="hero-actions">
+    <a href="https://github.com/GlitchHunters1/elephant-guard-ai" target="_blank" class="btn-primary">View on GitHub</a>
+    <a href="#pipeline" class="btn-secondary">See How It Works</a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="section-tag">The Problem</div>
+  <div class="about-grid">
+    <div class="about-text reveal">
+      <h2 class="section-title">Where Wildlife<br>Meets <em>Danger</em></h2>
+      <p class="section-sub" style="margin-bottom:24px">Human-elephant conflict is one of India's most urgent conservation crises, with forest-border communities in Chhattisgarh, Odisha, and Jharkhand bearing the heaviest toll.</p>
+      <p>Elephants venturing into farmland destroy crops, damage property, and tragically — claim lives. Retaliatory killings and electrocution have pushed elephant populations toward crisis. <strong>Both sides suffer.</strong></p>
+      <p>Existing solutions are reactive: barriers erected after attacks, compensation paid after deaths. What's missing is an <strong>early warning system</strong> that detects elephant approach before conflict erupts — and alerts both villagers and forest officials with enough time to act.</p>
+      <p>ElephantGuard AI is that system. Multi-sensor, self-learning, solar-powered, and deployable in the most remote forest boundaries — <strong>no internet required.</strong></p>
+    </div>
+    <div class="conflict-stats reveal">
+      <div class="cs-card">
+        <div class="cs-num">~595</div>
+        <div class="cs-label">Human Casualties (11 yrs)</div>
+        <div class="cs-src">India Today, 2024</div>
+      </div>
+      <div class="cs-card">
+        <div class="cs-num">~95</div>
+        <div class="cs-label">Deaths in 2021–22 alone</div>
+        <div class="cs-src">India Today, 2024</div>
+      </div>
+      <div class="cs-card">
+        <div class="cs-num">~13</div>
+        <div class="cs-label">Elephants electrocuted (2024)</div>
+        <div class="cs-src">India Today, 2024</div>
+      </div>
+      <div class="cs-card" style="background: rgba(192,57,43,0.08); border-color: rgba(192,57,43,0.2);">
+        <div class="cs-num" style="color:var(--amber)">N. CG</div>
+        <div class="cs-label">Hotspot: Surguja, Raigarh,<br>Korba, Surajpur, Balrampur</div>
+        <div class="cs-src">Economic Times, 2024</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PIPELINE -->
+<section class="pipeline" id="pipeline">
+  <div class="section-tag">System Workflow</div>
+  <h2 class="section-title reveal">From <em>Forest</em> to Safety</h2>
+  <p class="section-sub reveal">Five integrated stages form an unbroken chain from first motion to villager alert — operating entirely offline via LoRa radio.</p>
+
+  <div class="pipeline-steps reveal">
+    <div class="step">
+      <div class="step-num">01 —</div>
+      <div class="step-icon">📡</div>
+      <div class="step-title">Sensing</div>
+      <div class="step-desc">PIR, Doppler radar and thermal camera detect motion and body heat at forest boundaries.</div>
+      <div class="step-tags">
+        <span class="step-tag">PIR</span>
+        <span class="step-tag">24GHz Radar</span>
+        <span class="step-tag">MLX90640</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02 —</div>
+      <div class="step-icon">🧠</div>
+      <div class="step-title">Analysis</div>
+      <div class="step-desc">On-device ML (YOLOv7 + TFLite) differentiates elephants from humans, vehicles, or other animals.</div>
+      <div class="step-tags">
+        <span class="step-tag">YOLOv7</span>
+        <span class="step-tag">TFLite</span>
+        <span class="step-tag">OpenCV</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03 —</div>
+      <div class="step-icon">📶</div>
+      <div class="step-title">Transmit</div>
+      <div class="step-desc">Confirmed detection packaged and sent via LoRa radio (10–15 km range) to the Raspberry Pi gateway.</div>
+      <div class="step-tags">
+        <span class="step-tag">SX1276</span>
+        <span class="step-tag">LoRaWAN</span>
+        <span class="step-tag">ESP32</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">04 —</div>
+      <div class="step-icon">🚨</div>
+      <div class="step-title">Alert</div>
+      <div class="step-desc">Siren, LED strobe, and SMS/WhatsApp dispatched to villagers and forest officials within seconds.</div>
+      <div class="step-tags">
+        <span class="step-tag">Twilio SMS</span>
+        <span class="step-tag">Buzzer</span>
+        <span class="step-tag">LED Strobe</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">05 —</div>
+      <div class="step-icon">🔄</div>
+      <div class="step-title">Learn</div>
+      <div class="step-desc">Events are logged with timestamps. Feedback retrains the model, improving accuracy and reducing false alarms.</div>
+      <div class="step-tags">
+        <span class="step-tag">TimescaleDB</span>
+        <span class="step-tag">Node-RED</span>
+        <span class="step-tag">RPi 5</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- YOLOV7 DETECTION -->
+<section class="yolo-section" id="detection">
+  <div class="yolo-grid">
+    <div class="reveal">
+      <div class="yolo-badge">
+        <span>★</span> Core Innovation
+      </div>
+      <div class="section-tag">Computer Vision</div>
+      <h2 class="section-title">YOLOv7 +<br><em>OpenCV</em><br>Detection Engine</h2>
+      <p style="color:rgba(240,237,228,0.55); line-height:1.7; font-size:0.95rem; margin-bottom: 8px;">The system's intelligence layer combines YOLOv7's real-time object detection with OpenCV's computer vision pipeline — trained and optimised specifically for elephant identification in thermal and visible-light imagery.</p>
+      <div class="yolo-features">
+        <div class="yolo-feat">
+          <div class="yolo-feat-icon">🎯</div>
+          <div>
+            <div class="yolo-feat-title">Real-Time Inference</div>
+            <div class="yolo-feat-desc">Runs on-device at the edge via TensorFlow Lite on ESP32/RPi — no cloud latency, no internet required.</div>
+          </div>
+        </div>
+        <div class="yolo-feat">
+          <div class="yolo-feat-icon">🌡️</div>
+          <div>
+            <div class="yolo-feat-title">Thermal Image Processing</div>
+            <div class="yolo-feat-desc">ML model trained on thermal blobs to detect large, warm objects characteristic of elephants — works in pitch darkness.</div>
+          </div>
+        </div>
+        <div class="yolo-feat">
+          <div class="yolo-feat-icon">🔍</div>
+          <div>
+            <div class="yolo-feat-title">Multi-Class Differentiation</div>
+            <div class="yolo-feat-desc">Distinguishes elephants from humans, cattle, and vehicles — minimising false alarms that erode community trust.</div>
+          </div>
+        </div>
+        <div class="yolo-feat">
+          <div class="yolo-feat-icon">📈</div>
+          <div>
+            <div class="yolo-feat-title">Self-Improving Accuracy</div>
+            <div class="yolo-feat-desc">Feedback loop stores detection events; model periodically retrains on local data for region-specific improvements.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="detection-visual reveal">
+      <div class="dv-frame">
+        <div class="scan-line"></div>
+        <div class="dv-inner">🐘</div>
+        <div class="dv-conf">ELEPHANT DETECTED</div>
+        <div class="dv-label">YOLOv7 · CONFIDENCE 94.7%</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TECH STACK -->
+<section class="tech" id="tech">
+  <div class="section-tag">Components</div>
+  <h2 class="section-title reveal">Full <em>Tech Stack</em></h2>
+  <p class="section-sub reveal">Every component chosen for low power, high reliability, and field-deployable durability in remote forest environments.</p>
+
+  <div class="tech-grid reveal">
+    <div class="tech-card">
+      <div class="tech-cat">Hardware · MCU</div>
+      <div class="tech-name">ESP32</div>
+      <div class="tech-desc">Edge node MCU — reads sensors, runs local ML inference, triggers actuators, sends LoRa packets.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-cat">Hardware · Gateway</div>
+      <div class="tech-name">Raspberry Pi 4/5</div>
+      <div class="tech-desc">Central gateway and backend — receives LoRa data, runs analysis, hosts dashboard and database.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-cat">Communication</div>
+      <div class="tech-name">SX1276 / SX1278 (LoRa)</div>
+      <div class="tech-desc">Long-range, low-power radio — 10–15 km range, enabling offline communication without cellular networks.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-cat">Sensor · Motion</div>
+      <div class="tech-name">PIR Sensor</div>
+      <div class="tech-desc">Wake-on-motion trigger — activates detection pipeline only when movement detected, saving power.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-cat">Sensor · Radar</div>
+      <div class="tech-name">24 GHz Doppler Radar</div>
+      <div class="tech-desc">Detects large, slow-moving objects with distance and speed signature matching elephant gait.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-cat">Sensor · Thermal</div>
+      <div class="tech-name">MLX90640</div>
+      <div class="tech-desc">Thermal camera — confirms large warm object signature and feeds frames to ML detection model.</div>
+    </div>
+    <div class="tech-cat-group" style="display:contents">
+    <div class="tech-card">
+      <div class="tech-cat">Software · Edge ML</div>
+      <div class="tech-name">YOLOv7 + TFLite</div>
+      <div class="tech-desc">Real-time object detection model quantised for edge deployment on ESP32 and Raspberry Pi.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-cat">Software · Vision</div>
+      <div class="tech-name">OpenCV</div>
+      <div class="tech-desc">Computer vision pipeline — preprocessing, detection, and tracking in images and video streams.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-cat">Communication</div>
+      <div class="tech-name">MQTT / Mosquitto</div>
+      <div class="tech-desc">Lightweight pub/sub messaging between ESP32 nodes, gateway, and dashboard.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-cat">Database</div>
+      <div class="tech-name">PostgreSQL / TimescaleDB</div>
+      <div class="tech-desc">Event logging with timestamps and location for monitoring, reporting, and model retraining.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-cat">Notifications</div>
+      <div class="tech-name">Twilio / WhatsApp API</div>
+      <div class="tech-desc">SMS and WhatsApp alerts dispatched to villagers and forest officials on confirmed detection.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-cat">Power System</div>
+      <div class="tech-name">Solar + Battery</div>
+      <div class="tech-desc">Continuous off-grid operation — solar panel with charge controller and backup battery pack.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-cat">Backend · Dashboard</div>
+      <div class="tech-name">Node-RED / FastAPI</div>
+      <div class="tech-desc">Rules engine and REST API serving the live monitoring dashboard on Raspberry Pi.</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-cat">Deployment</div>
+      <div class="tech-name">IP65 Enclosure</div>
+      <div class="tech-desc">Weatherproof pole-mounted housing for all-weather outdoor deployment at forest boundaries.</div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- IMPACT -->
+<section class="impact" id="impact">
+  <div class="section-tag">Why It Matters</div>
+  <h2 class="section-title reveal">Impact &<br><em>Benefits</em></h2>
+  <p class="section-sub reveal">Technology for peaceful human-elephant coexistence — protecting lives on both sides.</p>
+  <div class="impact-grid reveal">
+    <div class="impact-card">
+      <div class="impact-icon-wrap">👥</div>
+      <div>
+        <div class="impact-title">Human Safety</div>
+        <div class="impact-desc">Early alerts prevent casualties and reduce fear in forest-border communities — giving people time to move to safety before elephants arrive.</div>
+      </div>
+    </div>
+    <div class="impact-card">
+      <div class="impact-icon-wrap">🐘</div>
+      <div>
+        <div class="impact-title">Wildlife Protection</div>
+        <div class="impact-desc">Prevents harm to elephants by enabling safe, non-violent redirection — eliminating retaliatory killings and electrocution incidents.</div>
+      </div>
+    </div>
+    <div class="impact-card">
+      <div class="impact-icon-wrap">🌿</div>
+      <div>
+        <div class="impact-title">Environmental Conservation</div>
+        <div class="impact-desc">Supports sustainable coexistence and helps maintain natural elephant corridors that are critical to ecosystem health.</div>
+      </div>
+    </div>
+    <div class="impact-card">
+      <div class="impact-icon-wrap">🤝</div>
+      <div>
+        <div class="impact-title">Community Empowerment</div>
+        <div class="impact-desc">Builds trust between villagers and forest authorities through reliable, transparent, tech-based protection — no more feeling abandoned.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CHALLENGES -->
+<section class="challenges">
+  <div class="section-tag">Honest Assessment</div>
+  <h2 class="section-title reveal">Known <em>Challenges</em></h2>
+  <p class="section-sub reveal">We've identified the real obstacles — and designed mitigations into every stage of the system.</p>
+  <div class="challenge-row reveal">
+    <div class="chal-card">
+      <div class="chal-num">01</div>
+      <div class="chal-icon">⚠️</div>
+      <div class="chal-title">False Alarms</div>
+      <div class="chal-desc">Non-elephant movements — humans, vehicles, large cattle — may trigger alerts. Mitigated by multi-sensor fusion and ML confidence thresholds.</div>
+    </div>
+    <div class="chal-card">
+      <div class="chal-num">02</div>
+      <div class="chal-icon">📵</div>
+      <div class="chal-title">Connectivity</div>
+      <div class="chal-desc">Poor GSM coverage can block SMS delivery. LoRa radio ensures local deterrents always activate even without a cellular signal.</div>
+    </div>
+    <div class="chal-card">
+      <div class="chal-num">03</div>
+      <div class="chal-icon">☁️</div>
+      <div class="chal-title">Power Supply</div>
+      <div class="chal-desc">Extended monsoon cloud cover limits solar charging. Battery backup sized for 5+ cloudy days; ultra-low-power sleep modes maximise runtime.</div>
+    </div>
+    <div class="chal-card">
+      <div class="chal-num">04</div>
+      <div class="chal-icon">🔧</div>
+      <div class="chal-title">Maintenance</div>
+      <div class="chal-desc">Forest sensors accumulate dust and moisture. IP65 enclosures, self-diagnostic pings, and quarterly calibration schedules address this.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- GITHUB CTA -->
+<section class="github-cta">
+  <div class="cta-inner">
+    <div class="cta-label">Open Source · Smart India Hackathon 2025</div>
+    <h2 class="cta-title">Build With<br><em>Us</em></h2>
+    <p class="cta-sub">The full codebase — firmware, ML models, dashboard, and deployment guides — is available on GitHub.</p>
+    <a href="https://github.com/GlitchHunters1/elephant-guard-ai" target="_blank" class="github-btn">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+      View Source on GitHub
+    </a>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2025 <span>Glitch Hunters_1</span> — Smart India Hackathon · PS-25167</p>
+  <p>Built with ESP32 · Raspberry Pi · YOLOv7 · LoRa · <span>Love for Wildlife</span></p>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const cursorRing = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx - 5 + 'px';
+    cursor.style.top = my - 5 + 'px';
+  });
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    cursorRing.style.left = rx - 18 + 'px';
+    cursorRing.style.top = ry - 18 + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(r => obs.observe(r));
+
+  // Hover cursor expand
+  document.querySelectorAll('a, button, .tech-card, .cs-card, .step').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.style.transform = 'scale(3)'; cursor.style.opacity = '0.5'; });
+    el.addEventListener('mouseleave', () => { cursor.style.transform = 'scale(1)'; cursor.style.opacity = '1'; });
+  });
+
+  // Hamburger menu
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+    document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+  });
+  document.querySelectorAll('.mob-link').forEach(link => {
+    link.addEventListener('click', () => {
+      hamburger.classList.remove('open');
+      mobileMenu.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+</script>
+</body>
+</html>

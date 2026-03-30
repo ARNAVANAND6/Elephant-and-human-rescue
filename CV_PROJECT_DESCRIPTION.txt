@@ -1,0 +1,111 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CV / RESUME — PROJECT DESCRIPTION
+ElephantGuard AI · Smart India Hackathon 2025
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+────────────────────────────────────────
+OPTION 1 — FULL DESCRIPTION (for project portfolio / detailed CV)
+────────────────────────────────────────
+
+ElephantGuard AI — Human-Elephant Conflict Prevention System
+Smart India Hackathon 2025 | Team Glitch Hunters_1 (ID: 98915) | PS-25167
+GitHub: github.com/GlitchHunters1/elephant-guard-ai
+
+Developed an AI + IoT-powered real-time elephant detection and early warning
+system to prevent Human-Elephant Conflict (HEC) in forest-border communities
+across India, where ~595 human deaths and 45+ elephant deaths have been
+recorded in the past decade.
+
+Key Contributions:
+• Built a real-time object detection pipeline using YOLOv7 and OpenCV,
+  trained on 4,200+ thermal elephant images, achieving ~91.4% mAP@0.5
+• Implemented on-device inference using TensorFlow Lite (INT8 quantised)
+  on ESP32 and Raspberry Pi, enabling fully offline edge AI operation
+• Designed multi-sensor fusion system combining PIR sensors, 24 GHz
+  Doppler radar, and MLX90640 thermal camera for robust detection
+• Built end-to-end IoT pipeline: ESP32 sensor nodes → LoRa radio (10–15 km
+  range) → Raspberry Pi gateway → MQTT → FastAPI → TimescaleDB
+• Integrated multi-channel alert system (siren, LED strobe, SMS via Twilio,
+  WhatsApp API) with <5 second end-to-end latency from detection to alert
+• Developed live monitoring dashboard using Node-RED and FastAPI showing
+  real-time events, node health, and detection confidence scores
+• Implemented solar + battery power system for continuous off-grid operation
+  in remote forest environments; IP65 weatherproof enclosures for deployment
+
+Tech Stack: Python, C/C++, YOLOv7, OpenCV, TensorFlow Lite, ESP32,
+Raspberry Pi, LoRa/LoRaWAN, MQTT, FastAPI, PostgreSQL/TimescaleDB,
+Node-RED, Twilio API, PlatformIO, Git
+
+
+────────────────────────────────────────
+OPTION 2 — CONCISE (for 1-page resume, 3–4 bullet points)
+────────────────────────────────────────
+
+ElephantGuard AI | Smart India Hackathon 2025 | github.com/GlitchHunters1/elephant-guard-ai
+• Engineered a real-time elephant detection system using YOLOv7 + OpenCV on
+  thermal imagery, achieving ~91% mAP deployed on ESP32/Raspberry Pi via TFLite
+• Built end-to-end IoT pipeline: multi-sensor nodes (PIR, Doppler radar, thermal
+  camera) → LoRa radio → gateway → SMS/WhatsApp alerts with <5s latency
+• Designed solar-powered, offline-first architecture (LoRaWAN, 10–15 km range)
+  for deployment in remote forest areas with no internet connectivity
+• Selected for Smart India Hackathon 2025 (PS-25167) out of thousands of teams
+
+
+────────────────────────────────────────
+OPTION 3 — ONE LINER (for skills section or project list)
+────────────────────────────────────────
+
+ElephantGuard AI (SIH 2025) — AI+IoT wildlife detection system using YOLOv7,
+TFLite, ESP32, LoRa, and Raspberry Pi to prevent human-elephant conflict in
+real time. [github.com/GlitchHunters1/elephant-guard-ai]
+
+
+────────────────────────────────────────
+SKILLS THIS PROJECT DEMONSTRATES (for skills section of CV)
+────────────────────────────────────────
+
+Computer Vision:     YOLOv7, OpenCV, TensorFlow Lite, object detection,
+                     thermal image processing, model quantisation
+
+Embedded Systems:    ESP32, Arduino/PlatformIO, C/C++ firmware, sensor
+                     integration (PIR, Doppler radar, I2C thermal camera)
+
+IoT & Networking:    LoRa/LoRaWAN, MQTT/Mosquitto, REST APIs (FastAPI),
+                     edge computing, offline-first architecture
+
+Backend:             Python, FastAPI, PostgreSQL, TimescaleDB, Node-RED,
+                     Twilio SMS API, WhatsApp Business API
+
+ML/AI:               YOLOv7 fine-tuning, TFLite INT8 quantisation,
+                     Edge Impulse, dataset curation and augmentation
+
+DevOps:              Git, GitHub Actions (CI/CD), PlatformIO builds,
+                     automated testing (pytest)
+
+Hardware:            PCB-level integration, solar power systems, IP65
+                     enclosure design, field deployment
+
+
+────────────────────────────────────────
+GITHUB REPO DESCRIPTION (for the "About" box on GitHub)
+────────────────────────────────────────
+
+AI + IoT system for real-time elephant detection and Human-Elephant Conflict 
+prevention. YOLOv7 · TFLite · ESP32 · LoRa · Raspberry Pi · Solar-powered 
+edge AI. Smart India Hackathon 2025 — PS-25167.
+
+
+────────────────────────────────────────
+GITHUB TOPICS / TAGS (paste into repo Topics on GitHub)
+────────────────────────────────────────
+
+elephant-detection, human-elephant-conflict, wildlife-conservation, yolov7,
+computer-vision, object-detection, tensorflow-lite, edge-ai, esp32,
+raspberry-pi, lora, iot, thermal-imaging, opencv, smart-india-hackathon,
+conservation-technology, real-time-detection, embedded-ml
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Note: Replace "github.com/GlitchHunters1/elephant-guard-ai" with your
+actual GitHub repository URL before using in your CV or GitHub profile.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
